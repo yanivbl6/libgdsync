@@ -68,6 +68,11 @@ struct gds_qp {
         struct gds_cq recv_cq;
         struct ibv_exp_res_domain * res_domain;
         struct ibv_context *dev_context;
+
+        void* swq; //send work queue pointer
+        size_t swq_cnt; //counter tracking swq location
+        size_t swq_size; //size of the swq (Blocks)
+        size_t swq_stride; //size of Blocks
 };
 
 /* \brief: Create a peer-enabled QP attached to the specified GPU id.
@@ -159,8 +164,21 @@ typedef enum gds_update_send_info_type {
  * Represents a posted send operation on a particular QP
  */
 
+#define GDS_SEND_MAX_SGE 16
+
+struct ptr_to_sge{
+    uint32_t ptr_to_size;
+    uint32_t ptr_to_lkey;
+    uint64_t ptr_to_addr;
+}
+
+struct gds_swr_info{
+    size_t num_sge;
+    struct ptr_to_sge sge_list[GDS_SEND_MAX_SGE];
+}
+
 typedef struct gds_send_request_info {
-    struct ibv_qp_swr_info swr_info;
+    struct gds_swr_info swr_info;
     //Size info
     uintptr_t ptr_to_size_wqe_h;
     CUdeviceptr ptr_to_size_wqe_d;
@@ -350,6 +368,35 @@ int gds_stream_post_descriptors(CUstream stream, size_t n_descs, gds_descriptor_
  */
 int gds_post_descriptors(size_t n_descs, gds_descriptor_t *descs, int flags);
 
+/**
+ * \brief: TODO
+ *
+ *
+ * \param flags - TODO
+ *
+ * \return
+ * 0 on success or one standard errno error
+ *
+ *
+ * Notes:
+ * - TODO.
+ */
+int gds_report_post(struct gds_qp *gqp, struct gds_send_wr* wr);
+
+/**
+ * \brief: TODO
+ *
+ *
+ * \param flags - TODO
+ *
+ * \return
+ * 0 on success or one standard errno error
+ *
+ *
+ * Notes:
+ * - TODO.
+ */
+int gds_query_last_info(struct gds_qp* qp, struct gds_swr_info* gds_info);
 
 /*
  * Local variables:
