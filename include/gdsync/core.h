@@ -39,6 +39,8 @@
     ( ((((v) & 0xffff0000U) >> 16) == GDS_API_MAJOR_VERSION) &&   \
       ((((v) & 0x0000ffffU) >> 0 ) >= GDS_API_MINOR_VERSION) )
 
+#define IBV_EXP_SEND_GET_INFO (1 << 28)
+
 typedef enum gds_param {
     GDS_PARAM_VERSION,
     GDS_NUM_PARAMS
@@ -167,9 +169,9 @@ typedef enum gds_update_send_info_type {
 #define GDS_SEND_MAX_SGE 16
 
 struct ptr_to_sge{
-    uint32_t ptr_to_size;
-    uint32_t ptr_to_lkey;
-    uint64_t ptr_to_addr;
+    uintptr_t ptr_to_size;
+    uintptr_t ptr_to_lkey;
+    uintptr_t ptr_to_addr;
     int offset;
 };
 

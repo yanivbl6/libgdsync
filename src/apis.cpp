@@ -208,7 +208,6 @@ out:
 
 //-----------------------------------------------------------------------------
 
-#define IBV_EXP_SEND_GET_INFO (1 << 28)
 
 int gds_prepare_send(struct gds_qp *qp, gds_send_wr *p_ewr, 
                      gds_send_wr **bad_ewr, 
@@ -264,7 +263,7 @@ int gds_prepare_send(struct gds_qp *qp, gds_send_wr *p_ewr,
             gds_dump_swr("gds_prepare_send", request->gds_sinfo.swr_info);
         }
 
-        ret = gds_report_post(qp, p_ewr); //increment counter.
+        ret = gds_report_post(qp /*, p_ewr*/); //increment counter.
 
         ret = ibv_exp_peer_commit_qp(qp->qp, &request->commit);
         if (ret) {
@@ -1187,6 +1186,12 @@ out:
         return ret;
 }
 
+struct mlx5_sge{
+    uint32_t byte_count;
+    uint32_t key;
+    uint64_t addr;
+};
+
 struct mlx5_send_wqe{
     uint32_t ctrl1;
     uint32_t qpn_ds;
@@ -1194,13 +1199,7 @@ struct mlx5_send_wqe{
     uint64_t send12;
     uint64_t send34;
     struct mlx5_sge sge;
-}
-
-struct mlx5_sge{
-    uint32_t byte_count;
-    uint32_t key;
-    uint64_t addr;
-}
+};
 
 int gds_report_post(struct gds_qp *qp  /*, struct gds_send_wr* wr*/){
     ++(qp->swq_cnt);
@@ -1221,9 +1220,10 @@ int gds_query_last_info(struct gds_qp *qp, struct gds_swr_info* gds_info){
     struct mlx5_sge* sge = &(wqe->sge);
     size_t wqes_per_block = (qp->swq_stride / sizeof(mlx5_sge)); 
     for (size_t i = 0; i< gds_info->num_sge; ++i){
-        gds_info->sge_list[i].ptr_to_size = &(sge->byte_count);
-        gds_info->sge_list[i].ptr_to_lkey = &(sge->key);
-        gds_info->sge_list[i].ptr_to_addr = &(sge->addr);
+        gds_info->sge_list[i].ptr_to_size = (uintptr_t) &(sge->byte_count);
+        gds_info->sge_list[i].ptr_to_lkey = (uintptr_t) &(sge->key);
+        gds_info->sge_list[i].ptr_to_addr = (uintptr_t) &(sge->addr);
+        gds_info->sge_list[i].offset = 0; //why is that here?
         (++sge);
         //TODO: handle wrap around (I Think commented should work but lets handle it later)
         //if (qp->swq_cnt + (i / wqes_per_block + !!(i % wqes_per_block)) > qp->swq_size) sge = (struct mlx5_sge*) qp->swq;
