@@ -1872,6 +1872,30 @@ gds_create_cq(struct ibv_context *context, int cqe,
 
 //-----------------------------------------------------------------------------
 
+
+int gds_add_dv_qp_ctx(struct gds_qp* gqp){
+        struct mlx5dv_obj dv_obj = {};
+        struct mlx5dv_qp* dv_qp = (struct mlx5dv_qp *)malloc(sizeof(struct mlx5dv_qp));
+        memset((void *)&dv_obj, 0, sizeof(struct mlx5dv_obj));        
+
+        dv_obj.qp.in = gqp->qp;
+        dv_obj.qp.out = dv_qp;
+        int ret = mlx5dv_init_obj(&dv_obj, MLX5DV_OBJ_QP);
+
+        if (ret)
+          return ret; 
+
+        gqp->swq_cnt = 0;
+        gqp->swq_size = dv_qp->sq.wqe_cnt;
+        gqp->swq = dv_qp->sq.buf;
+        gqp->swq_stride = dv_qp->sq.stride;
+        free(dv_qp);
+        gds_dbg("extracted dv_qp context=%p\n", gqp);
+        return 0;
+}
+
+//-----------------------------------------------------------------------------
+
 struct gds_qp*
 gds_create_qp(struct ibv_pd *pd, struct ibv_context *context,
                                 gds_qp_init_attr_t *qp_attr, int gpu_id, int flags)
@@ -1982,27 +2006,6 @@ err:
         gds_destroy_qp(gqp);
 
         return NULL;
-}
-
-int gds_add_dv_qp_ctx(struct gds_qp* gqp){
-        struct mlx5dv_obj dv_obj = {};
-        struct mlx5dv_qp* dv_qp = (struct mlx5dv_qp *)malloc(sizeof(struct mlx5dv_qp));
-        memset((void *)&dv_obj, 0, sizeof(struct mlx5dv_obj));        
-
-        dv_obj.qp.in = gqp->qp;
-        dv_obj.qp.out = dv_qp;
-        int ret = mlx5dv_init_obj(&dv_obj, MLX5DV_OBJ_QP);
-
-        if (ret)
-          return ret; 
-
-        gqp->swq_cnt = 0
-        gqp->swq_size = dv_qp->sq.wqe_cnt;
-        gqp->swq = dv_qp->sq.buf;
-        gqp->swq_stride = dv_qp->sq.stride;
-        free(dv_qp);
-        gds_dbg("extracted dv_qp context=%p\n", gqp);
-        return 0;
 }
 
 //-----------------------------------------------------------------------------

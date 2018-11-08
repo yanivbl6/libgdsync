@@ -208,6 +208,8 @@ out:
 
 //-----------------------------------------------------------------------------
 
+#define IBV_EXP_SEND_GET_INFO (1 << 28)
+
 int gds_prepare_send(struct gds_qp *qp, gds_send_wr *p_ewr, 
                      gds_send_wr **bad_ewr, 
                      gds_send_request_t *request)
@@ -1200,7 +1202,7 @@ struct mlx5_sge{
     uint64_t addr;
 }
 
-int gds_report_post(struct gds_qp *qp, struct gds_send_wr* wr){
+int gds_report_post(struct gds_qp *qp  /*, struct gds_send_wr* wr*/){
     ++(qp->swq_cnt);
     return 0;
     /*//Smarter Alternative:

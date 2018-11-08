@@ -170,12 +170,14 @@ struct ptr_to_sge{
     uint32_t ptr_to_size;
     uint32_t ptr_to_lkey;
     uint64_t ptr_to_addr;
-}
+    int offset;
+};
 
 struct gds_swr_info{
     size_t num_sge;
     struct ptr_to_sge sge_list[GDS_SEND_MAX_SGE];
-}
+    size_t wr_id;
+};
 
 typedef struct gds_send_request_info {
     struct gds_swr_info swr_info;
@@ -381,7 +383,7 @@ int gds_post_descriptors(size_t n_descs, gds_descriptor_t *descs, int flags);
  * Notes:
  * - TODO.
  */
-int gds_report_post(struct gds_qp *gqp, struct gds_send_wr* wr);
+int gds_report_post(struct gds_qp *gqp  /*, struct gds_send_wr* wr*/);
 
 /**
  * \brief: TODO
