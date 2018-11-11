@@ -43,7 +43,10 @@
 #include "archutils.h"
 #include "mlnxutils.h"
 #include "task_queue.hpp"
+
+extern "C" {
 #include <infiniband/mlx5dv.h>
+}
 
 //-----------------------------------------------------------------------------
 
