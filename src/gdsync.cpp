@@ -1995,7 +1995,7 @@ gds_create_qp(struct ibv_pd *pd, struct ibv_context *context,
 
 
         ret = gds_add_dv_qp_ctx(gqp);
-        if (!ret){
+        if (ret){
           ret = EINVAL;
           gds_err("error in gds_add_dv_qp_ctx\n");
           goto err;
